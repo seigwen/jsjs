@@ -9,6 +9,9 @@ const BREAK_SINGAL: {} = {}
 const CONTINUE_SINGAL: {} = {}
 const RETURN_SINGAL: { result: any } = { result: undefined }
 
+/**
+ * 节点处理器
+ */
 const evaluate_map: EvaluateMap = {
 
     Program: (program: ESTree.Program, scope: Scope) => {
@@ -27,7 +30,9 @@ const evaluate_map: EvaluateMap = {
     },
 
     BlockStatement: (block: ESTree.BlockStatement, scope: Scope) => {
+        // 如何传入的scope是侵入式的,则使用该scope; 否则新建一个block类型的scope
         let new_scope = scope.invasived ? scope : new Scope('block', scope)
+        // 一个block,比如说function block,内部有多个语句,那么每个语句都是block.body数组的一个元素
         for (const node of block.body) {
             const result = evaluate(node, new_scope)
             if (result === BREAK_SINGAL
@@ -293,6 +298,7 @@ const evaluate_map: EvaluateMap = {
         })[node.operator]()
     },
 
+    // "++"和"--"被归为"updateExpression",而不是"unaryExpression"
     UpdateExpression: (node: ESTree.UpdateExpression, scope: Scope) => { 
         const { prefix } = node
         let $var: {
@@ -352,6 +358,7 @@ const evaluate_map: EvaluateMap = {
         })[node.operator](evaluate(node.left, scope), evaluate(node.right, scope))
     },
 
+    // 赋值表达式
     AssignmentExpression: (node: ESTree.AssignmentExpression, scope: Scope) => {
         let $var: {
             $set(value: any): boolean
@@ -420,11 +427,12 @@ const evaluate_map: EvaluateMap = {
         )
     },
 
+    // 函数调用表达式
     CallExpression: (node: ESTree.CallExpression, scope: Scope) => {
         const func = evaluate(node.callee, scope)
         const args = node.arguments.map(arg => evaluate(arg, scope))
 
-        // 心疼自己
+        // 方法调用
         if (node.callee.type === 'MemberExpression') {
             const object = evaluate(node.callee.object, scope)
             return func.apply(object, args)
@@ -479,6 +487,14 @@ const evaluate_map: EvaluateMap = {
     ArrowFunctionExpression: (node: ESTree.ArrowFunctionExpression, scope: Scope) => { throw `${node.type} 未实现` },
 }
 
+/**
+ * Description placeholder
+ *
+ * @param {ESTree.Node} node
+ * @param {Scope} scope
+ * @param {?*} [arg]
+ * @returns {*}
+ */
 const evaluate = (node: ESTree.Node, scope: Scope, arg?: any) => {
     const _evalute = (<EvaluateFunc>(evaluate_map[node.type]))
     return _evalute(node, scope, arg)

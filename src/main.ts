@@ -1,5 +1,7 @@
-
+// 声明require
 declare const require : (module: string) => any
+
+// 引入aconr作为js的parser
 const acorn = require('acorn/dist/acorn.js')
 
 import { Scope } from './scope'
@@ -56,14 +58,23 @@ const default_api: { [key: string]: any } = {
     Promise
 }
 
+/**
+ * 解析并解释执行输入的代码字符串
+ * @param code 代码字符串
+ * @param append_api 附加api
+ * @returns 
+ */
 export function run(code: string, append_api: { [key: string]: any } = {}) {
     const scope = new Scope('block')
+    // 注入this
     scope.$const('this', this)
 
+    // 注入标准库
     for (const name of Object.getOwnPropertyNames(default_api)) {
         scope.$const(name, default_api[name])
     }
 
+    // 注入附加api
     for (const name of Object.getOwnPropertyNames(append_api)) {
         scope.$const(name, append_api[name])
     }
@@ -74,6 +85,7 @@ export function run(code: string, append_api: { [key: string]: any } = {}) {
     scope.$const('module', $module)
     scope.$const('exports', $exports)
 
+    // 解释执行
     evaluate(acorn.parse(code, options), scope)
 
     // exports
