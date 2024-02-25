@@ -194,8 +194,10 @@ const evaluate_map: EvaluateMap = {
     },
 
     FunctionDeclaration: (node: ESTree.FunctionDeclaration, scope: Scope) => {
+        // 返回一个function
         const func = evaluate_map.FunctionExpression(<any>node, scope)
         const { name: func_name } = node.id
+        // 尝试在作用域对象中以fun_name为键名, 设置上面返回的function为键值
         if (!scope.$const(func_name, func)) {
             throw `[Error] ${name} 重复定义`
         }
@@ -436,7 +438,9 @@ const evaluate_map: EvaluateMap = {
         if (node.callee.type === 'MemberExpression') {
             const object = evaluate(node.callee.object, scope)
             return func.apply(object, args)
-        } else {
+        } 
+        // 函数调用
+        else {
             const this_val = scope.$find('this')
             return func.apply(this_val ? this_val.$get() : null, args)
         }

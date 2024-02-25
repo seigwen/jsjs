@@ -4,7 +4,7 @@ import * as interpreter from './main'
 
 
 // 解释器执行 hello world
-interpreter.run(`console.log('hello world')`)
+interpreter.run(`console.log(1111, a);var a = 'hello world'; `)
 
 // 自举解释器代码
 declare const require, __dirname
