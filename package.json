@@ -2,7 +2,7 @@
   "name": "jsjs",
   "version": "v0.0.1",
   "scripts": {
-    "dev": "./node_modules/.bin/webpack --watch"
+    "dev": "webpack --watch"
   },
   "dependencies": {
     "@types/estree": "^0.0.38",

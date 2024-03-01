@@ -30,7 +30,7 @@ const evaluate_map: EvaluateMap = {
     },
 
     BlockStatement: (block: ESTree.BlockStatement, scope: Scope) => {
-        // 如何传入的scope是侵入式的,则使用该scope; 否则新建一个block类型的scope
+        // 如果传入的scope是侵入式的,则使用该scope; 否则新建一个block类型的scope
         let new_scope = scope.invasived ? scope : new Scope('block', scope)
         // 一个block,比如说function block,内部有多个语句,那么每个语句都是block.body数组的一个元素
         for (const node of block.body) {
@@ -205,6 +205,9 @@ const evaluate_map: EvaluateMap = {
 
     VariableDeclaration: (node: ESTree.VariableDeclaration, scope: Scope) => {
         const kind = node.kind
+        /**
+         * 一个VariableDeclaration包含若干个VariableDeclarator
+         */
         for (const declartor of node.declarations) {
             const { name } = <ESTree.Identifier>declartor.id
             const value = declartor.init ? evaluate(declartor.init, scope) : undefined

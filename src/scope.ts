@@ -82,9 +82,9 @@ export class Scope {
 
   readonly type: ScopeType
   /** 
-   * 是否为侵入式scope.
-   * catch/while/doWhile/forIn/function的scope类型是侵入式的, 其blockStatement无需新建scope, 直接使用外部scope
-   * switch/for的scope的非侵入式的
+   * block的scope是否为侵入式scope;
+   * catch/while/doWhile/forIn/function的scope类型是侵入式的, 其blockStatement无需新建scope, 直接使用外部scope, 这意味着内部变量直接侵入到外部scope;
+   * switch/for的scope的非侵入式的;
    **/
   invasived: boolean
 
@@ -151,6 +151,7 @@ export class Scope {
     const name = this.prefix + raw_name
     let scope: Scope = this
 
+    // 如果var变量所在作用域不是函数域, 则把var变量提升到全局作用域
     while (scope.parent !== null && scope.type !== 'function') {
       scope = scope.parent
     }
@@ -162,7 +163,13 @@ export class Scope {
     } else { return false }
   }
 
-
+  /**
+   * 网关路由,根据kind变量,调用对应的方法(var/let/const)
+   * @param kind 
+   * @param raw_name 
+   * @param value 
+   * @returns 
+   */
   $declar(kind: Kind, raw_name: string, value: any): boolean {
     return ({
       'var': () => this.$var(raw_name, value),
